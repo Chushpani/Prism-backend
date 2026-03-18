@@ -1,0 +1,116 @@
+*{
+    margin: 0px;
+    padding: 0px;
+    display: flexbox;   
+}
+html, body {
+  height: 100%;
+  overflow: hidden;    /* нельзя скроллить сайт, пока модалка открыта */
+}
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: #f5f7ffdd;
+}
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* модалка */
+
+#login-overlay, #register-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;     /* логин сразу показан */
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+#register-overlay {
+  display: none;     /* регистрация скрыта изначально */
+}
+
+.modal {
+  background: #0f0f0f;
+  color: #FFFFFF;
+  border: 2px solid #2e2e2e6c;
+  box-shadow: 0px 4px 40px #2e2e2ed2;
+  padding: 34px 40px;
+  border-radius: 16px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+
+input {
+  font-size: 19px;
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 18px;
+  border: 1px solid #4646466c;
+  border-radius: 8px;
+  background: #2e2e2e6c;
+  color: #f1f5f9;
+  box-sizing: border-box;
+  font-family: 'Unbound';
+}
+
+button {
+  width: 85%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: radial-gradient(circle at top left, rgba(39, 39, 39, 0.685),rgba(27, 27, 27, 0.568),rgba(39, 39, 39, 0.685) );
+  color: #f1f5f9; font-family: 'Unbound';
+  cursor: pointer;
+}
+
+button[type="submit"] {
+  display: block;
+  margin: 0 auto;
+  margin-top: 12px;
+}
+button[type="submit"]:hover{
+  background: radial-gradient(circle at top left, rgba(39, 39, 39, 0.685),
+  rgba(61, 61, 61, 0.568),
+  rgba(39, 39, 39, 0.685) );
+}
+button[type="button"] {
+  background: #212122;
+  margin: 15px 0px; 
+}
+button[type="button"]:hover{
+  background: radial-gradient(circle at top left, rgba(39, 39, 39, 0.685),
+  rgba(61, 61, 61, 0.568),
+  rgba(39, 39, 39, 0.685) );
+}
+
+
+/* модальное окно регистрации */
+
+@font-face {
+  font-family: 'Akony';
+  src: url('/fonts/AKONY.ttf') format('ttf');
+}
+@font-face {
+  font-family: 'Unbound';
+  src: url(/fonts/Unbounded-Regular.ttf);
+}
+
+header{
+    justify-items: center;
+    margin: 24px;
+    font-size: 27px; font-family: 'Akony';
+}
+
+h2{
+  text-align: center; letter-spacing: 2px;
+  font-size: 25px; font-family: 'Akony';
+  margin: 24px 0px; margin-bottom: 30px;
+}
