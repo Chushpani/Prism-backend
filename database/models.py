@@ -20,6 +20,8 @@ class Service(db.Model):
     logo_url = db.Column(db.String(255))                
     sender_email = db.Column(db.String(120), nullable=False)
 
+    search_keywords = db.Column(db.String(255), nullable = True, default = "оплата, чек, подписка")
+
 class Subscription(db.Model):
     __tablename__ = 'subscriptions'
 
