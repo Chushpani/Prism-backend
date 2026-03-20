@@ -68,6 +68,16 @@ class MailClient:
         else:
             return msg.get_payload(decode=True).decode('utf-8', errors='ignore')
         return ""
+    
+    def logout(self):
+        """Культурно закрываем соединение, чтобы сервер не ругался"""
+        if self.mail:
+            try:
+                self.mail.close() 
+                self.mail.logout()
+                print("🚪 Сессия IMAP закрыта. До связи!")
+            except Exception as e:
+                print(f"⚠️ Не удалось закрыть сессию (возможно, уже отвалилась): {e}")
 
 
 # --- ТЕСТОВЫЙ ЗАПУСК ---
