@@ -15,6 +15,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
+# регистрация
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.json
@@ -62,6 +63,7 @@ def register():
 
     return jsonify({"status": "partial_success", "message": "User created but IMAP failed"}), 202
 
+# вход в аккаунт
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -89,6 +91,8 @@ def login():
         "subscriptions": user_subs
     }), 200
 
+
+# обновление в приложении
 @app.route('/api/sync', methods=['POST'])
 def sync_data():
     data = request.get_json()
@@ -127,6 +131,7 @@ def sync_data():
     
     return jsonify({"status": "error", "message": "Sync failed"}), 500
 
+# вывод всех подписок по имейлу
 @app.route('/api/subscriptions/by-email', methods=['POST'])
 def get_subs_by_email():
     data = request.get_json()
@@ -145,6 +150,64 @@ def get_subs_by_email():
     } for s in user.subscriptions]
 
     return jsonify({"status": "success", "subscriptions": subs_list}), 200
+
+# прием запроса на удаление подписки
+@app.route('/api/subscription/<int:sub_id>', methods=['DELETE'])
+def delete_subscription(sub_id):
+    sub = Subscription.query.get(sub_id)
+    
+    if not sub:
+        return jsonify({"status": "error", "message": "Subscription not found"}), 404
+
+    try:
+        db.session.delete(sub)
+        db.session.commit()
+        
+        return jsonify({
+            "status": "success", 
+            "message": f"Subscription {sub_id} deleted successfully"
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# прием изменений данных подписки
+@app.route('/api/subscription/<int:sub_id>', methods=['PUT'])
+def update_subscription_full(sub_id):
+    data = request.get_json()
+    sub = Subscription.query.get(sub_id)
+    
+    if not sub:
+        return jsonify({"status": "error", "message": "Subscription not found"}), 404
+
+    try:
+        sub.price = data.get('price', sub.price)
+        
+        # Обработка дат (конвертируем из строки в объект date)
+        if 'start_date' in data:
+            sub.start_date = datetime.datetime.strptime(data['start_date'], '%Y-%m-%d').date()
+        
+        if 'end_date' in data:
+            val = data.get('end_date')
+            sub.end_date = datetime.datetime.strptime(val, '%Y-%m-%d').date() if val else None
+
+        db.session.commit()
+
+        return jsonify({
+            "status": "success",
+            "message": "Subscription fully updated",
+            "data": {
+                "id": sub.id,
+                "price": sub.price,
+                "start_date": str(sub.start_date),
+                "end_date": str(sub.end_date) if sub.end_date else None
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"status": "error", "message": f"Update failed: {str(e)}"}), 500
 
 if __name__ == '__main__':
     with app.app_context():
