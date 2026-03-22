@@ -32,6 +32,7 @@ class Subscription(db.Model):
     price = db.Column(db.Float, nullable=False)
     start_date = db.Column(db.Date, default=datetime.utcnow)
     end_date = db.Column(db.Date, nullable=True)
-
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    clicks = db.Column(db.Integer, default = 0)
+
     service = db.relationship('Service', backref='subscriptions')

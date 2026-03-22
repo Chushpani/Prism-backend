@@ -81,6 +81,7 @@ def login():
             "id": sub.id,
             "service_name": sub.service.name,
             "price": sub.price,
+            "clicks": sub.clicks,
             "start_date": sub.start_date.strftime('%Y-%m-%d'),
             "end_date": sub.end_date.strftime('%Y-%m-%d') if sub.end_date else "Active"
         })
@@ -96,9 +97,9 @@ def login():
 @app.route('/api/sync', methods=['POST'])
 def sync_data():
     data = request.get_json()
-    user_id = data.get('user_id') 
+    email = data.get('email') # Ищем по имейлу
 
-    user = User.query.get(user_id)
+    user = User.query.filter_by(email=email).first()
     if not user:
         return jsonify({"status": "error", "message": "User not found"}), 404
 
@@ -146,7 +147,9 @@ def get_subs_by_email():
         "id": s.id,
         "service_name": s.service.name,
         "price": s.price,
-        "start_date": s.start_date.strftime('%Y-%m-%d')
+        "start_date": s.start_date.strftime('%d.%m.%Y'),
+        "end_date": s.end_date.strftime('%d.%m.%Y'),
+        "clicks": s.clicks
     } for s in user.subscriptions]
 
     return jsonify({"status": "success", "subscriptions": subs_list}), 200
@@ -208,6 +211,38 @@ def update_subscription_full(sub_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"status": "error", "message": f"Update failed: {str(e)}"}), 500
+    
+# запрос на клик
+@app.route('/api/subscription/<int:sub_id>/click', methods=['POST'])
+def increment_subscription_click(sub_id):
+    # Ищем подписку в базе
+    sub = Subscription.query.get(sub_id)
+    
+    if not sub:
+        return jsonify({
+            "status": "error", 
+            "message": "Subscription not found"
+        }), 404
+
+    try:
+        # Инкрементируем счетчик
+        sub.clicks = (sub.clicks or 0) + 1
+        db.session.commit()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Click registered",
+            "new_clicks": sub.clicks,
+            # Сразу считаем "цену одного использования" для фронта
+            "cost_per_click": round(sub.price / sub.clicks, 2) if sub.clicks > 0 else sub.price
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "status": "error", 
+            "message": str(e)
+        }), 500
 
 if __name__ == '__main__':
     with app.app_context():

@@ -6,7 +6,7 @@ def seed_services():
     services_to_add = [
     Service(
         name="Yandex Plus", 
-        sender_email="no-reply@plus.yandex.ru", 
+        sender_email="noreply@plus.yandex.ru", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=yandex.ru",
         search_keywords="Плюс,Списание,Заказ"
     ),
