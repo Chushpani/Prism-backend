@@ -7,13 +7,20 @@ def sync_engine(client, service, full_scan=False):
     if not ids:
         return []
 
+    # Берем или всё, или последние 5 для скорости
     target_ids = ids if full_scan else ids[-5:]
     
     found_payments = []
     
+    # Мы идем от новых к старым
     for msg_id in reversed(target_ids):
-        # ... получение письма ...
+        msg = client.get_raw_email(msg_id)
+        body = client.get_email_body(msg)
         
+        # ОБЯЗАТЕЛЬНО проверь, что body не None перед экстрактом!
+        if not body:
+            continue
+
         price = extract_amount(body)
         if price:
             p_date = extract_date(msg)
@@ -24,11 +31,11 @@ def sync_engine(client, service, full_scan=False):
                 "amount": price,
                 "payment_date": p_date,
                 "end_date": p_end,
-                "category": service.category  # <--- ВОТ ЭТО ДОБАВЛЯЕМ
+                "category": service.category
             })
             
             if not full_scan:
-                break
+                break 
                 
     return found_payments
 
