@@ -8,72 +8,84 @@ def seed_services():
         name="Yandex Plus", 
         sender_email="noreply@plus.yandex.ru", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=yandex.ru",
+        category="Развлечения",
         search_keywords="Плюс,Списание,Заказ"
     ),
     Service(
         name="Spotify", 
         sender_email="no-reply@spotify.com", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=spotify.com",
+        category="Музыка",
         search_keywords="Receipt,Subscription,Счёт"
     ),
     Service(
         name="Netflix", 
         sender_email="info@mailer.netflix.com", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=netflix.com",
+        category="Кино и ТВ",
         search_keywords="Your plan,Update,Payment"
     ),
     Service(
         name="Ivi", 
         sender_email="support@ivi.ru", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=ivi.ru",
+        category="Кино и ТВ",
         search_keywords="Подписка,Оплата,ivi"
     ),
     Service(
         name="Telegram Premium", 
         sender_email="premium@telegram.org", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=telegram.org",
+        category="Соцсети",
         search_keywords="Premium,Receipt,Fragment"
     ),
     Service(
         name="VK Music", 
         sender_email="support@vk.com", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=vk.com",
+        category="Музыка",
         search_keywords="VK Music,Подписка,Выписка"
     ),
     Service(
         name="Okko", 
         sender_email="mail@okko.tv", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=okko.tv",
+        category="Кино и ТВ",
         search_keywords="Оплата,Okko,Чек,Подписка"
     ),
     Service(
         name="Premier", 
         sender_email="help@premier.one", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=premier.one",
+        category="Кино и ТВ",
         search_keywords="Premier,Оплата,Подписка"
     ),
     Service(
         name="Start", 
         sender_email="support@start.ru", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=start.ru",
+        category="Кино и ТВ",
         search_keywords="Start,Оплата,Подписка"
     ),
     Service(
         name="Apple Services", 
         sender_email="no_reply@email.apple.com", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=apple.com",
+        category="Сервисы",
         search_keywords="Invoice,Квитанция,Apple"
     ),
     Service(
         name="ChatGPT", 
         sender_email="info@sendgrid.openai.com", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=openai.com",
+        category="Работа и ИИ",
         search_keywords="Invoice,Subscription,Renewal"
     ),
     Service(
         name="YouTube Premium", 
         sender_email="noreply@youtube.com", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=youtube.com",
+        category="Развлечения",
         search_keywords="Membership,Receipt,Подписка"
     )
 ]

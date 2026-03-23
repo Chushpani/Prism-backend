@@ -81,6 +81,7 @@ def login():
             "id": sub.id,
             "service_name": sub.service.name,
             "price": sub.price,
+            "category": sub.category,
             "clicks": sub.clicks,
             "start_date": sub.start_date.strftime('%Y-%m-%d'),
             "end_date": sub.end_date.strftime('%Y-%m-%d') if sub.end_date else "Active"
@@ -147,6 +148,7 @@ def get_subs_by_email():
         "id": s.id,
         "service_name": s.service.name,
         "price": s.price,
+        "category": s.category,
         "start_date": s.start_date.strftime('%d.%m.%Y'),
         "end_date": s.end_date.strftime('%d.%m.%Y'),
         "clicks": s.clicks
@@ -243,6 +245,32 @@ def increment_subscription_click(sub_id):
             "status": "error", 
             "message": str(e)
         }), 500
+    
+
+# запрос на редакт категории
+@app.route('/api/subscriptions/<int:sub_id>/category', methods=['PATCH'])
+def update_category(sub_id):
+    data = request.get_json()
+    new_category = data.get('category')
+    
+    if not new_category:
+        return jsonify({"status": "error", "message": "Категория не указана"}), 400
+    
+    # Ищем подписку
+    sub = Subscription.query.get(sub_id)
+    
+    if not sub:
+        return jsonify({"status": "error", "message": "Подписка не найдена"}), 404
+        
+    # Обновляем
+    sub.category = new_category
+    db.session.commit()
+    
+    return jsonify({
+        "status": "success", 
+        "message": "Категория обновлена",
+        "new_category": sub.category
+    }), 200
 
 if __name__ == '__main__':
     with app.app_context():

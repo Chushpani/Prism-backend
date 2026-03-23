@@ -20,6 +20,7 @@ class Service(db.Model):
     name = db.Column(db.String(80), nullable=False)      
     logo_url = db.Column(db.String(255))                
     sender_email = db.Column(db.String(120), nullable=False)
+    category = db.Column(db.String(120),nullable=False)
 
     search_keywords = db.Column(db.String(255), nullable = True, default = "оплата, чек, подписка")
 
@@ -34,5 +35,6 @@ class Subscription(db.Model):
     end_date = db.Column(db.Date, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     clicks = db.Column(db.Integer, default = 0)
+    category = db.Column(db.String(120), nullable=False)
 
     service = db.relationship('Service', backref='subscriptions')
