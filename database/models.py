@@ -35,6 +35,6 @@ class Subscription(db.Model):
     end_date = db.Column(db.Date, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     clicks = db.Column(db.Integer, default = 0)
-    category = db.Column(db.String(120), nullable=False)
+    category = db.Column(db.String(120), nullable=True)
 
     service = db.relationship('Service', backref='subscriptions')

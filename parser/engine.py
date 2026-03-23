@@ -12,8 +12,7 @@ def sync_engine(client, service, full_scan=False):
     found_payments = []
     
     for msg_id in reversed(target_ids):
-        msg = client.get_raw_email(msg_id)
-        body = client.get_email_body(msg)
+        # ... получение письма ...
         
         price = extract_amount(body)
         if price:
@@ -24,9 +23,9 @@ def sync_engine(client, service, full_scan=False):
                 "service_id": service.id,
                 "amount": price,
                 "payment_date": p_date,
-                "end_date": p_end
+                "end_date": p_end,
+                "category": service.category  # <--- ВОТ ЭТО ДОБАВЛЯЕМ
             })
-            
             
             if not full_scan:
                 break
