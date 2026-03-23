@@ -51,7 +51,8 @@ def register():
                 price=item['amount'],
                 start_date=item['payment_date'],
                 end_date=item['end_date'],
-                user_id=new_user.id
+                user_id=new_user.id,
+                category=item['category']  # <--- ДОБАВЬ ЭТУ СТРОКУ
             )
             db.session.add(sub)
 
