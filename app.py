@@ -19,55 +19,59 @@ db.init_app(app)
 # регистрация
 @app.route('/api/register', methods=['POST'])
 def register():
-    data = request.json
+    data = request.get_json()
     email = data.get('email')
     password = data.get('password')
     imap_password = data.get('imap_password')
 
     if not all([email, password, imap_password]):
-        return jsonify({"error": "Missing email, password or IMAP token"}), 400
+        return jsonify({"status": "error", "message": "Missing fields"}), 400
     
-    user_exists = User.query.filter_by(email=email).first()
-    if user_exists:
-        return jsonify({"error": "User already exists"}), 409
+    if User.query.filter_by(email=email).first():
+        return jsonify({"status": "error", "message": "User already exists"}), 409
     
-    # 1. Создаем объект юзера
-    new_user = User(email=email)
-    
-    # 2. Хешируем пароль от аккаунта (в базу полетит каша)
-    new_user.set_password(password)
-    
-    # 3. Шифруем IMAP пароль (в базу полетит зашифрованная строка)
-    new_user.imap_password = utils.crypto.encrypt_imap(imap_password)
+    try:
+        # 1. Создаем юзера, но НЕ комитим сразу в смерть
+        new_user = User(email=email)
+        new_user.set_password(password)
+        new_user.imap_password = utils.crypto.encrypt_imap(imap_password)
 
-    db.session.add(new_user)
-    db.session.commit()
+        db.session.add(new_user)
+        db.session.flush() # Получаем new_user.id, не завершая транзакцию
 
-    # 4. Запускаем парсинг. 
-    # ВАЖНО: передаем чистый imap_password, который пришел из запроса!
-    service = Service.query.all()
-    print(f"scan postbox for {email}...")
-    sync_result = sync_all_subscriptions(email, imap_password, service, is_first_run=True)
+        # 2. Собираем сервисы
+        services_list = Service.query.all()
+        if not services_list:
+            print("⚠️ ВНИМАНИЕ: Таблица Service пуста! Запусти seed_db.py")
 
-    if sync_result["status"] == 'success':
-        for item in sync_result['data']:
-            sub = Subscription(
-                service_id=item['service_id'],
-                price=item['amount'],
-                start_date=item['payment_date'],
-                end_date=item['end_date'],
-                user_id=new_user.id,
-                category=item['category']
-            )
-            db.session.add(sub)
+        # 3. Парсинг (передаем ЧИСТЫЙ imap_password)
+        sync_result = sync_all_subscriptions(email, imap_password, services_list, is_first_run=True)
 
-        db.session.commit()
-        return jsonify({
-            "status": "success", 
-            "found": len(sync_result['data'])
-        }), 201
+        # 4. Обработка результатов парсинга
+        if sync_result.get("status") == 'success':
+            for item in sync_result.get('data', []):
+                sub = Subscription(
+                    service_id=item['service_id'],
+                    price=item['amount'],
+                    start_date=item['payment_date'],
+                    end_date=item['end_date'],
+                    user_id=new_user.id,
+                    category=item.get('category', 'Other')
+                )
+                db.session.add(sub)
+            
+            db.session.commit() # Финальный коммит всего разом
+            return jsonify({"status": "success", "found": len(sync_result['data'])}), 201
+        else:
+            # Если парсинг не удался, юзера всё равно сохраняем? 
+            # Если да - комитим, если нет - делаем rollback
+            db.session.commit() 
+            return jsonify({"status": "partial_success", "message": sync_result.get("message")}), 202
 
-    return jsonify({"status": "partial_success", "message": "User created but IMAP failed"}), 202
+    except Exception as e:
+        db.session.rollback()
+        print(f"🔥 Ошибка регистрации: {e}")
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 # вход в аккаунт
 @app.route('/api/login', methods=['POST'])
