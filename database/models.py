@@ -1,3 +1,5 @@
+from werkzeug.security import generate_password_hash, check_password_hash
+from .models import db
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -12,6 +14,12 @@ class User(db.Model):
     imap_password = db.Column(db.Text, nullable = False)
 
     subscriptions = db.relationship('Subscription', backref='owner', lazy=True)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 class Service(db.Model):
     __tablename__ = 'services'

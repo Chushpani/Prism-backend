@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
+import utils.crypto
 from database.models import db, User, Service, Subscription
 from parser.engine import sync_all_subscriptions
 import datetime
@@ -26,39 +27,43 @@ def register():
     if not all([email, password, imap_password]):
         return jsonify({"error": "Missing email, password or IMAP token"}), 400
     
-    user_exists = User.query.filter_by(email = email).first()
+    user_exists = User.query.filter_by(email=email).first()
     if user_exists:
         return jsonify({"error": "User already exists"}), 409
     
-    new_user = User(
-        email = email,
-        password = password,
-        imap_password = imap_password
-    )
+    # 1. Создаем объект юзера
+    new_user = User(email=email)
+    
+    # 2. Хешируем пароль от аккаунта (в базу полетит каша)
+    new_user.set_password(password)
+    
+    # 3. Шифруем IMAP пароль (в базу полетит зашифрованная строка)
+    new_user.imap_password = utils.crypto.encrypt_imap(imap_password)
 
     db.session.add(new_user)
     db.session.commit()
 
+    # 4. Запускаем парсинг. 
+    # ВАЖНО: передаем чистый imap_password, который пришел из запроса!
     service = Service.query.all()
-
     print(f"scan postbox for {email}...")
     sync_result = sync_all_subscriptions(email, imap_password, service, is_first_run=True)
 
     if sync_result["status"] == 'success':
         for item in sync_result['data']:
             sub = Subscription(
-                service_id = item['service_id'],
+                service_id=item['service_id'],
                 price=item['amount'],
                 start_date=item['payment_date'],
                 end_date=item['end_date'],
                 user_id=new_user.id,
-                category=item['category']  # <--- ДОБАВЬ ЭТУ СТРОКУ
+                category=item['category']
             )
             db.session.add(sub)
 
         db.session.commit()
         return jsonify({
-            "status": "success",
+            "status": "success", 
             "found": len(sync_result['data'])
         }), 201
 
@@ -73,7 +78,7 @@ def login():
 
     user = User.query.filter_by(email=email).first()
 
-    if not user or user.password != password:
+    if not user or not user.check_password(password):
         return jsonify({"status": "error", "message": "Неверный логин или пароль"}), 401
 
     user_subs = []
@@ -99,15 +104,24 @@ def login():
 @app.route('/api/sync', methods=['POST'])
 def sync_data():
     data = request.get_json()
-    email = data.get('email') # Ищем по имейлу
+    email = data.get('email')
+    password = data.get('password')
 
     user = User.query.filter_by(email=email).first()
-    if not user:
-        return jsonify({"status": "error", "message": "User not found"}), 404
+
+    if not user or not user.check_password(password):
+        return jsonify({"status": "error", "message": "Неверный логин или пароль"}), 401
+
+    # РАСШИФРОВЫВАЕМ пароль IMAP для входа в почту
+    try:
+        real_imap_pass = utils.crypto.decrypt_imap(user.imap_password)
+    except Exception as e:
+        return jsonify({"status": "error", "message": "Ошибка ключа шифрования"}), 500
 
     all_services = Service.query.all()
 
-    sync_result = sync_all_subscriptions(user.email, user.imap_password, all_services, is_first_run=False)
+    # Передаем РЕАЛЬНЫЙ пароль в парсер
+    sync_result = sync_all_subscriptions(user.email, real_imap_pass, all_services, is_first_run=False)
 
     if sync_result['status'] == 'success':
         new_count = 0
@@ -124,7 +138,8 @@ def sync_data():
                     service_id=item['service_id'],
                     price=item['amount'],
                     start_date=item['payment_date'],
-                    end_date=item['end_date']
+                    end_date=item['end_date'],
+                    category=item['category'] # <--- НЕ ЗАБЫВАЕМ
                 )
                 db.session.add(new_sub)
                 new_count += 1
