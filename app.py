@@ -71,7 +71,8 @@ def register():
     except Exception as e:
         db.session.rollback()
         print(f"🔥 Ошибка регистрации: {e}")
-        return jsonify({"status": "error", "message": "Internal server error"}), 500
+
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # вход в аккаунт
 @app.route('/api/login', methods=['POST'])
