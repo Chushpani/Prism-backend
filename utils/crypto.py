@@ -4,8 +4,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Достаем ключ из .env
 KEY = os.getenv("SECRET_CRYPTO_KEY")
+KEY = os.getenv("SECRET_CRYPTO_KEY")
+if not KEY:
+    raise ValueError("❌ Критическая ошибка: SECRET_CRYPTO_KEY не найден в .env!")
 cipher_suite = Fernet(KEY.encode())
 
 def encrypt_imap(raw_password):
