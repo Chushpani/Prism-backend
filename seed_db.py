@@ -5,6 +5,13 @@ def seed_services():
     # Создаем список топ сервисов
     services_to_add = [
     Service(
+            name="Добавить подписку", 
+            sender_email="manual@prism.ru", # Технический заглушечный email
+            logo_url="https://cdn-icons-png.flaticon.com/512/1828/1828817.png", # Иконка плюсика
+            category="Общее",
+            search_keywords="add,new,plus"
+        ),
+    Service(
         name="Yandex Plus", 
         sender_email="noreply@plus.yandex.ru", 
         logo_url="https://www.google.com/s2/favicons?sz=64&domain=yandex.ru",
